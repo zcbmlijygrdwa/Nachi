@@ -28,8 +28,8 @@ mr = 0.099;
 ml2 = -0.099;
 mr2 = 0.099;
 
-isSim = false;
-ifPlot = true;
+isSim = true;
+ifPlot = false;
 if(~isSim)
     ifPlot = true;
 end
@@ -76,10 +76,8 @@ lastOrderFrame = 0;
 
 addpath('../fx_util')
 addpath(genpath('../OAPI-Bot'))
-addpath('E:/fx_EUR_USD_tick')
 addpath('../../../../../../../../../../../matlabplugins')
-addpath('../trueFX_data')
-addpath('../../../fx_EUR_USD_tick')
+addpath('../../../../../../../../../../../fx_EUR_USD_tick')
 
 
 
@@ -180,7 +178,7 @@ else
         return;
     end
     
-    ApiStart2;
+    ApiStart;
     try
         account = GetAccounts_oanda;
     catch
@@ -576,7 +574,7 @@ for yearIdx = 2009:2018
                     if(abs(filteredDataDiff(end))<0.8*abs(maxAfterTriggered_filteredDataDiff))
                         %calculate slop of filteredData
                         slop = filteredData(end) - filteredData(end-3);
-                        slop1 = data(end) - data(end-1);
+                        %slop1 = data(end) - data(end-1);
                         if(abs(slop)<2.3e-06)
                             isRSIHit = false;
                             isFire = true;
@@ -974,7 +972,8 @@ for yearIdx = 2009:2018
                 disp(['Y:' num2str(yearIdx) ', mo:' num2str(monthIdx) ', D:' num2str(days) ', H:' num2str(hours)  ', sec:' num2str(frameCount) ', balance:' num2str(account.balance)  ', holds:' num2str(sellHolds+buyHolds) ', fps:' num2str(1/timeUsed)  ', orderMinsPM:' num2str(orderMinutesPerMo) ', backup:' num2str(backup) ', traderLevelLeft:' num2str(traderLevelLeft)])
             end
             
-            if((~isSim&&length(data)>1)||(ifPlot&&length(data)>1&&(frameCount - lastOrderFrame==1000)))%if(ifPlot&&length(data)>1&&mod(frameCount,plotPeriod)==0)
+            %if((~isSim&&length(data)>1)||(ifPlot&&length(data)>1&&(frameCount - lastOrderFrame==1000)))
+            if(ifPlot&&length(data)>1&&mod(frameCount,plotPeriod)==0)
                 SMTPlot3;
                 if isSim
                     pause(0.1);
