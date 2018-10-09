@@ -12,7 +12,7 @@ distrCut = 2.5;
 
 
 %extrem case
-maxPriod= 3600*1;
+maxPriod= 3600*5;
 distrCut = 2.5;
 p = 600;
 profitCutOff= 1.005697%1.04
@@ -47,7 +47,7 @@ PID_state.d = 0;
 PID_state.target =13000;
 PID_state.initialized = false;
 
-plotPeriodMain = 1000;
+plotPeriodMain = 10000;
 plotPeriod = plotPeriodMain;
 
 
@@ -115,6 +115,12 @@ MA_state(2) = p;
 
 MA_state2(1) = 0;
 MA_state2(2) = 24*p;
+
+
+if(MA_state2(2)>=maxPriod)
+   disp('maxPriod too small, not enough data for MovingAverage filter 2')
+   return;
+end
 
 % MA_state.period = p;
 % MA_state.initialized = false;
