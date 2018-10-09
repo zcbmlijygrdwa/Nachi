@@ -1,8 +1,7 @@
 
 clear all
 close all
-%https://api.txtlocal.com/send/?username=zcbmlijygrdwa@gmail.com&hash=ae2ec292b4a1ea64906fdbfbefa6aa347b0244992046dd0cef753e0b8c2cab49&password=******&apikey=F15VWihMD8A-krreEwAUjNlYt39pbKZrOklOENm9tZ&numbers=3128880068&sender=zyz&message=test
-
+ 
 p = 60; %p = 300;
 
 traderLevelMax= 1;
