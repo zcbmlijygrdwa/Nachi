@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "240972444981",
+    "firebase_url": "https://nachi-69eb3.firebaseio.com",
+    "project_id": "nachi-69eb3",
+    "storage_bucket": "nachi-69eb3.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:240972444981:android:0eb7c0fc28bf848b",
+        "android_client_info": {
+          "package_name": "zhenyuyang.ucsb.edu.nachi"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "240972444981-tnq4lkdi0r3p6m4fsabes4596omc00rl.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCywdq5es4kDktdzhnJeo6JzAUzS_ICpRc"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

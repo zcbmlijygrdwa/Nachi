@@ -1,0 +1,11 @@
+traderLevelMax = 8;
+maxPriod = 3600;
+lowPassA = 0.0100;
+linearScale = 1;
+expScaleNight = 10;
+expScaleDay = 1000;
+lookBackSize = 100;
+excitingRateThreshold = 0.2000;
+profitCutOff = 1.0040;
+lossCutOff = 0.9;
+MAPeriod = 250;
