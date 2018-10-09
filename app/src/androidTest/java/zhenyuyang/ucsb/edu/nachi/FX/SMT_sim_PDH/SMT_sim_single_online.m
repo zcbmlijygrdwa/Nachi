@@ -1,23 +1,14 @@
 clear all
 close all
 
-p = 60; %p = 300;
-
 traderLevelMax= 1;
-maxPriod= 3600*12;
-profitCutOff= 1.02;%1.005697
-lossCutOff= 0.985; %0.6
-
-distrCut = 2.5;
-
-
-%extrem case
 maxPriod= 3600*5;
 distrCut = 2.5;
-p = 600;
-profitCutOff= 1.005697%1.04
-lossCutOff= 0.99; %0.6
-%end of extrem case
+p_ma_1 = 300;
+p_ma_2 = 3600;
+profitCutOff= 1.005%1.04
+lossCutOff= 0.98; %0.6
+orderTimeoutThres = 300
 
 
 backup = 0;
@@ -36,7 +27,7 @@ end
 ifSlowHolding = false;
 ifLoss = false;
 ifOrderTimeout = true
-orderTimeoutThres = 3600
+
 orderTimeoutState = false;
 
 ifBackup = true;
@@ -111,10 +102,10 @@ maBuffer = [];
 maBuffer2 = [];
 
 MA_state(1) = 0;
-MA_state(2) = p;
+MA_state(2) = p_ma_1;
 
 MA_state2(1) = 0;
-MA_state2(2) = 24*p;
+MA_state2(2) = p_ma_2;
 
 
 if(MA_state2(2)>=maxPriod)
