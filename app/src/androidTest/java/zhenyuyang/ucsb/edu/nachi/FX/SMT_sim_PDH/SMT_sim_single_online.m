@@ -3,21 +3,28 @@ close all
 
 traderLevelMax= 1;
 maxPriod= 3600*5;
-distrCut = 2.5;
+distrCut_arm = 2.5;
+distrCut_valueCahne = 3.0;
 p_ma_1 = 300;
 p_ma_2 = 3600;
-profitCutOff= 1.005%1.04
+profitCutOff= 1.01; %1.04
 lossCutOff= 0.98; %0.6
-orderTimeoutThres = 300
+orderTimeoutThres = 1200;
+filteredDataDiff_fallback_upper = 0.8;
+filteredDataDiff_fallback_lower = 0.6;
 
+isFollowTrend = false;
+isValueChangeTriggerable = true;
+
+isTradingBanned = false;
 
 backup = 0;
 
-ml = -0.099;
-mr = 0.099;
+ml_arm = -0.099;
+mr_arm = 0.099;
 
-ml2 = -0.099;
-mr2 = 0.099;
+ml2_arm = -0.099;
+mr2_arm = 0.099;
 
 isSim = true;
 ifPlot = false;
@@ -26,7 +33,7 @@ if(~isSim)
 end
 ifSlowHolding = false;
 ifLoss = false;
-ifOrderTimeout = true
+ifOrderTimeout = true;
 
 orderTimeoutState = false;
 
@@ -489,53 +496,95 @@ for yearIdx = 2009:2018
             
             if(~isSim||mod(frameCount,30)==0)
                 [m,s] = normfit(filteredDataDiff);
-                ml = m-distrCut*s;
-                mr = m+distrCut*s;
+                ml_arm = m-distrCut_arm*s;
+                mr_arm = m+distrCut_arm*s;
                 
                 [m2,s2] = normfit(filteredDataDiff2);
-                ml2 = m2-distrCut*s2;
-                mr2 = m2+distrCut*s2;
+                ml2_arm = m2-distrCut_arm*s2;
+                mr2_arm = m2+distrCut_arm*s2;
+                
+                ml2_VC = m2-distrCut_valueCahne*s2;
+                mr2_VC = m2+distrCut_valueCahne*s2;
+                
+                
             end
             
             
-            if(filteredDataDiff2(end)<ml2)
+            if(filteredDataDiff2(end)<ml2_arm)
                 aa = 1;
             end
             
             %restore isRSIHit if both diffs go into peace region
             if((buyHolds==0&&sellHolds==0) ...
-                    &&((filteredDataDiff(end)>ml&&filteredDataDiff2(end)>ml2)&&(filteredDataDiff(end)<mr&&filteredDataDiff2(end)<mr2)) ...
+                    &&((filteredDataDiff(end)>ml_arm&&filteredDataDiff2(end)>ml2_arm)&&(filteredDataDiff(end)<mr_arm&&filteredDataDiff2(end)<mr2_arm)) ...
                     )
                 isRSIHit = false;
                 maxAfterTriggered_filteredDataDiff = 0;
             end
             
-            if(buyHolds==0&&sellHolds==0)
-                if(filteredDataDiff(end)<ml||filteredDataDiff(end)>mr)
+            if(isTradingBanned)
+                if(filteredDataDiff(end)>ml_arm&&filteredDataDiff(end)<mr_arm)
+                    if(filteredDataDiff2(end)>ml2_arm&&filteredDataDiff2(end)<mr2_arm)
+                        disp("cancel TradingBanner");
+                        isTradingBanned = false;
+                    end
+                end
+            end
+            
+            
+            if(buyHolds==0&&sellHolds==0&&(~isTradingBanned))
+                
+                if(filteredDataDiff(end)<ml_arm||filteredDataDiff(end)>mr_arm)
                     if(maxAfterTriggered_filteredDataDiff==0)
                         maxAfterTriggered_filteredDataDiff = (filteredDataDiff(end));
                     else
-                        
                         %same sign check
                         if(maxAfterTriggered_filteredDataDiff*filteredDataDiff(end)<0)
                             disp('same sign check on filteredDataDiff failed');
                             isRSIHit = false;
                             maxAfterTriggered_filteredDataDiff = 0;
                         end
-                        
                         %update max
                         if(abs(maxAfterTriggered_filteredDataDiff)<abs(filteredDataDiff(end)))
                             maxAfterTriggered_filteredDataDiff = filteredDataDiff(end);
                         end
                     end
                     
-                    if(filteredDataDiff2(end)<ml2||filteredDataDiff2(end)>mr2)
-                        if((isSim&&frameCount>=3*maxPriod||~isSim))
+                    if(filteredDataDiff2(end)<ml2_arm||filteredDataDiff2(end)>mr2_arm)
+                        if((isSim&&frameCount>=3*maxPriod||~isSim)) &&((filteredDataDiff2(end)>ml2_VC&&filteredDataDiff2(end)<mr2_VC))
                             lastHitFrame = frameCount;
                             isRSIHit = true;
                             maxAfterTriggered_filteredDataDiff2 = (filteredDataDiff2(end));
                         end
+                        
+                    else
+                        if(~isValueChangeTriggerable)
+                            isValueChangeTriggerable = true;
+                        end
                     end
+                    
+                    if(filteredDataDiff2(end)<ml2_VC||filteredDataDiff2(end)>mr2_VC)
+                        if(isValueChangeTriggerable&&(isSim&&frameCount>=3*maxPriod||~isSim))
+                            disp('Value change point! Guess trend will keep going')
+                            isValueChangeTriggerable = false;
+                            isFollowTrend = true;
+                            isRSIHit = false;
+                            isFire = true;
+                            orderTimeoutState = false;
+                            lastOrderFrame = frameCount;
+                            if(ifPlot)
+                                IP_idx_current =  length(data);
+                                IP_idx = [IP_idx IP_idx_current];
+                            end
+                            if(ifSlowHolding)
+                                plotPeriod = 1;
+                                beep;
+                            end
+                        end
+                        
+                    end
+                    
+                    
                 end
             end
             
@@ -568,11 +617,16 @@ for yearIdx = 2009:2018
                 end
                 
                 if(frameCount - lastHitFrame<100)
-                    if(abs(filteredDataDiff(end))<0.8*abs(maxAfterTriggered_filteredDataDiff))
+                    
+                    %fall-back verification: verify if filteredDataDiff
+                    %falls back to desired region from maxAfterTriggered_filteredDataDiff
+                    
+                    if(abs(filteredDataDiff(end))>filteredDataDiff_fallback_lower*abs(maxAfterTriggered_filteredDataDiff) ...
+                            && abs(filteredDataDiff(end))<filteredDataDiff_fallback_upper*abs(maxAfterTriggered_filteredDataDiff))
                         %calculate slop of filteredData
                         slop = filteredData(end) - filteredData(end-3);
                         %slop1 = data(end) - data(end-1);
-                        if(abs(slop)<2.3e-06)
+                        if(abs(slop)<2.3e-06||true)
                             isRSIHit = false;
                             isFire = true;
                             orderTimeoutState = false;
@@ -609,10 +663,10 @@ for yearIdx = 2009:2018
             
             
             %buy trading
-            if(isFire&&buyHolds==0&&sellHolds==0&&filteredDataDiff(end)<0)
+            if(isFire&&buyHolds==0&&sellHolds==0&&(~isFollowTrend&&filteredDataDiff(end)<0||(isFollowTrend&&filteredDataDiff(end)>0)))
+                isFollowTrend = false;
                 isFire = false;
                 buyCost = newPrice;
-                
                 
                 buyHolds = int32((balance/newPrice)*(leverage-1));
                 buyHolds = buyHolds/(2^(traderLevelLeft-1));
@@ -674,7 +728,7 @@ for yearIdx = 2009:2018
                         %emailNotification('[PDH win]')
                     end
                     %disp(['***[win]close buy order at ',num2str(newPrice),' with amount ',num2str(buyHolds),'BenefitRatio = ',num2str(BenefitRatio),', expScale = ',num2str(expScale)]);
-                    disp(['[PDH win - ' num2str(traderLevelLeft) ']']);
+                    disp(['[PDH win - ' num2str(traderLevelLeft) '], tempProfit = ' num2str(tempProfit)]);
                     traderLevelLeftHist = [traderLevelLeftHist;traderLevelLeft];
                     buyHolds = 0;
                     traderLevelLeft = traderLevelMax;
@@ -780,13 +834,16 @@ for yearIdx = 2009:2018
                     tradingDurationHistory(tradingDurationHistoryPointer) = frameCount - tradingStart;
                     tradingDurationHistoryPointer = tradingDurationHistoryPointer +1 ;
                     plotPeriod = plotPeriodMain;
+                    isTradingBanned = true;
                 end
             end
             
             
             
             %sell trading
-            if(isFire&&buyHolds==0&&sellHolds==0&&filteredDataDiff(end)>0)%&&excitingRate<excitingRateThreshold)
+            if(isFire&&buyHolds==0&&sellHolds==0&&(~isFollowTrend&&filteredDataDiff(end)>0||(isFollowTrend&&filteredDataDiff(end)<0)))
+                isFollowTrend = false;
+                
                 sellHolds = int32((balance/newPrice)*(leverage-1));
                 sellHolds = sellHolds/(2^(traderLevelLeft-1));
                 sellHolds = -sellHolds;
@@ -852,7 +909,7 @@ for yearIdx = 2009:2018
                     
                     
                     %disp(['[win]close sell order at ',num2str(newPrice),' with amount ',num2str(sellHolds),'BenefitRatio = ',num2str(BenefitRatio),', expScale = ',num2str(expScale)]);
-                    disp(['[PDH win - ' num2str(traderLevelLeft) ']']);
+                    disp(['[PDH win - ' num2str(traderLevelLeft) '], tempProfit  =' num2str(tempProfit)]);
                     traderLevelLeftHist = [traderLevelLeftHist;traderLevelLeft];
                     sellHolds = 0;
                     traderLevelLeft = traderLevelMax;
@@ -956,6 +1013,7 @@ for yearIdx = 2009:2018
                     tradingDurationHistory(tradingDurationHistoryPointer) = frameCount - tradingStart;
                     tradingDurationHistoryPointer = tradingDurationHistoryPointer +1 ;
                     plotPeriod = plotPeriodMain;
+                    isTradingBanned = true;
                 end
             end
             
@@ -969,8 +1027,8 @@ for yearIdx = 2009:2018
                 disp(['Y:' num2str(yearIdx) ', mo:' num2str(monthIdx) ', D:' num2str(days) ', H:' num2str(hours)  ', sec:' num2str(frameCount) ', balance:' num2str(account.balance)  ', holds:' num2str(sellHolds+buyHolds) ', fps:' num2str(1/timeUsed)  ', orderMinsPM:' num2str(orderMinutesPerMo) ', backup:' num2str(backup) ', traderLevelLeft:' num2str(traderLevelLeft)])
             end
             
-            %if((~isSim&&length(data)>1)||(ifPlot&&length(data)>1&&(frameCount - lastOrderFrame==1000)))
-            if(ifPlot&&length(data)>1&&mod(frameCount,plotPeriod)==0)
+            if((~isSim&&length(data)>1)||(ifPlot&&length(data)>1&&lastOrderFrame~=0&&(frameCount - lastOrderFrame==1000)))
+            %if(ifPlot&&length(data)>1&&mod(frameCount,plotPeriod)==0)
                 SMTPlot3;
                 if isSim
                     pause(0.1);
