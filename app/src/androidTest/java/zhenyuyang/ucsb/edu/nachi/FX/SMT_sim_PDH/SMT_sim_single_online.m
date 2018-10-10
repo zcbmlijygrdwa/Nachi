@@ -20,6 +20,8 @@ isValueChangeTriggerable = true;
 
 isTradingBanned = false;
 
+specialWatchPoint = -1;
+
 backup = 0;
 
 ml_arm = -0.099;
@@ -524,7 +526,7 @@ for yearIdx = 2009:2018
                 maxAfterTriggered_filteredDataDiff = 0;
             end
             
-            if(isTradingBanned)
+            if(buyHolds==0&&sellHolds==0&&isTradingBanned)
                 if(filteredDataDiff(end)>0.5*ml_arm&&filteredDataDiff(end)<0.5*mr_arm)
                     if(filteredDataDiff2(end)>0.5*ml2_arm&&filteredDataDiff2(end)<0.5*mr2_arm)
                         disp("cancel TradingBanner");
@@ -741,6 +743,7 @@ for yearIdx = 2009:2018
                     isRSIHit = false;
                     plotPeriod = plotPeriodMain;
                     numOfWin = numOfWin+1;
+                    isTradingBanned = true;
                 elseif(BenefitRatio<currentlossCutOff)%elseif(BenefitRatio<currentlossCutOff(traderLevelLeft+1))
                     %beep
                     %disp('-----------------------------------');
@@ -829,6 +832,9 @@ for yearIdx = 2009:2018
                         %emailNotification('[PDH lose]')
                     end
                     disp(['[PDH buy timeout], tempProfit = ' num2str(tempProfit)]);
+                    if(abs(tempProfit)>=1000)
+                       specialWatchPoint = frameCount; 
+                    end
                     %disp(['[lose]close buy order at ',num2str(newPrice),' with amount ',num2str(buyHolds),'BenefitRatio = ',num2str(BenefitRatio),', expScale = ',num2str(expScale)]);
                     beep
                     numOfLoss = numOfLoss+1;
@@ -922,6 +928,7 @@ for yearIdx = 2009:2018
                     isRSIHit = false;
                     plotPeriod = plotPeriodMain;
                     numOfWin = numOfWin+1;
+                    isTradingBanned = true;
                 elseif(BenefitRatio<currentlossCutOff)%elseif(BenefitRatio<currentlossCutOff(traderLevelLeft+1))
                     %beep
                     %disp('-----------------------------------');
@@ -1008,6 +1015,11 @@ for yearIdx = 2009:2018
                         %emailNotification('[PDH lose]')
                     end
                     disp(['[PDH sell timeout],tempProfit = ' num2str(tempProfit)]);
+                    
+                    if(abs(tempProfit)>=1000)
+                       specialWatchPoint = frameCount; 
+                    end
+                    
                     %disp(['[lose]close sell order at ',num2str(newPrice),' with amount ',num2str(sellHolds),'BenefitRatio = ',num2str(BenefitRatio),', expScale = ',num2str(expScale)]);
                     beep
                     numOfLoss = numOfLoss+1;
@@ -1017,6 +1029,7 @@ for yearIdx = 2009:2018
                     tradingDurationHistoryPointer = tradingDurationHistoryPointer +1 ;
                     plotPeriod = plotPeriodMain;
                     isTradingBanned = true;
+                    
                 end
             end
             
@@ -1030,11 +1043,15 @@ for yearIdx = 2009:2018
                 disp(['Y:' num2str(yearIdx) ', mo:' num2str(monthIdx) ', D:' num2str(days) ', H:' num2str(hours)  ', sec:' num2str(frameCount) ', balance:' num2str(account.balance)  ', holds:' num2str(sellHolds+buyHolds) ', fps:' num2str(1/timeUsed)  ', orderMinsPM:' num2str(orderMinutesPerMo) ', backup:' num2str(backup) ', traderLevelLeft:' num2str(traderLevelLeft)])
             end
             
-            if((~isSim&&length(data)>1)||(ifPlot&&length(data)>1&&lastOrderFrame~=0&&(frameCount - lastOrderFrame==1000)))
+            if((~isSim&&length(data)>1)||(ifPlot&&length(data)>1&&lastOrderFrame~=0&&(frameCount - lastOrderFrame==1000 || (frameCount -specialWatchPoint ==1000))))
             %if(ifPlot&&length(data)>1&&mod(frameCount,plotPeriod)==0)
                 SMTPlot3;
                 if isSim
                     pause(0.1);
+                end
+                
+                if((frameCount -specialWatchPoint ==1000))
+                   aaa = 1; 
                 end
             end
             
