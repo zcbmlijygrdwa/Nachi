@@ -568,6 +568,7 @@ for yearIdx = 2009:2018
                             disp('Value change point! Guess trend will keep going')
                             isValueChangeTriggerable = false;
                             isFollowTrend = true;
+                            isTradingBanned = true;
                             isRSIHit = false;
                             isFire = true;
                             orderTimeoutState = false;
@@ -825,7 +826,7 @@ for yearIdx = 2009:2018
                         OrderBook = NewOrder('EUR_USD',-buyHolds);
                         %emailNotification('[PDH lose]')
                     end
-                    disp('[PDH buy timeout]');
+                    disp(['[PDH buy timeout], tempProfit = ' num2str(tempProfit)]);
                     %disp(['[lose]close buy order at ',num2str(newPrice),' with amount ',num2str(buyHolds),'BenefitRatio = ',num2str(BenefitRatio),', expScale = ',num2str(expScale)]);
                     beep
                     numOfLoss = numOfLoss+1;
@@ -1004,7 +1005,7 @@ for yearIdx = 2009:2018
                         OrderBook = NewOrder('EUR_USD',-sellHolds);
                         %emailNotification('[PDH lose]')
                     end
-                    disp('[PDH sell timeout]');
+                    disp(['[PDH sell timeout],tempProfit = ' num2str(tempProfit)]);
                     %disp(['[lose]close sell order at ',num2str(newPrice),' with amount ',num2str(sellHolds),'BenefitRatio = ',num2str(BenefitRatio),', expScale = ',num2str(expScale)]);
                     beep
                     numOfLoss = numOfLoss+1;
