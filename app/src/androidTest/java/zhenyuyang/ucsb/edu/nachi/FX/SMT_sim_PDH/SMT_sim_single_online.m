@@ -9,10 +9,10 @@ p_ma_1 = 300;
 p_ma_2 = 3600;
 profitCutOff= 1.01; %1.04
 lossCutOff= 0.95; %0.6
-orderTimeoutThres = p_ma_2;
+orderTimeoutThres = 600;
 filteredDataDiff_fallback_upper = 0.9;
 filteredDataDiff_fallback_lower = 0.8;
-backupThres = 1.2;
+backupThres = 5;
 plotPeriodMain = 50000;
 
 isFollowTrend = false;
@@ -805,8 +805,8 @@ for yearIdx = 2009:2018
                         numOfLoss = numOfLoss+1;
                         buyHolds = 0;
                         traderLevelLeft = traderLevelMax;
-                        tradingDurationHistory(tradingDurationHistoryPointer) = frameCount - tradingStart;
-                        tradingDurationHistoryPointer = tradingDurationHistoryPointer +1 ;
+                        %tradingDurationHistory(tradingDurationHistoryPointer) = frameCount - tradingStart;
+                        %tradingDurationHistoryPointer = tradingDurationHistoryPointer +1 ;
                         plotPeriod = plotPeriodMain;
                     end
                 end
@@ -840,8 +840,8 @@ for yearIdx = 2009:2018
                     numOfLoss = numOfLoss+1;
                     buyHolds = 0;
                     traderLevelLeft = traderLevelMax;
-                    tradingDurationHistory(tradingDurationHistoryPointer) = frameCount - tradingStart;
-                    tradingDurationHistoryPointer = tradingDurationHistoryPointer +1 ;
+                    %tradingDurationHistory(tradingDurationHistoryPointer) = frameCount - tradingStart;
+                    %tradingDurationHistoryPointer = tradingDurationHistoryPointer +1 ;
                     plotPeriod = plotPeriodMain;
                     isTradingBanned = true;
                 end
@@ -988,8 +988,8 @@ for yearIdx = 2009:2018
                         numOfLoss = numOfLoss+1;
                         sellHolds = 0;
                         traderLevelLeft = traderLevelMax;
-                        tradingDurationHistory(tradingDurationHistoryPointer) = frameCount - tradingStart;
-                        tradingDurationHistoryPointer = tradingDurationHistoryPointer +1 ;
+                        %tradingDurationHistory(tradingDurationHistoryPointer) = frameCount - tradingStart;
+                        %tradingDurationHistoryPointer = tradingDurationHistoryPointer +1 ;
                         plotPeriod = plotPeriodMain;
                     end
                 end
@@ -1025,8 +1025,8 @@ for yearIdx = 2009:2018
                     numOfLoss = numOfLoss+1;
                     sellHolds = 0;
                     traderLevelLeft = traderLevelMax;
-                    tradingDurationHistory(tradingDurationHistoryPointer) = frameCount - tradingStart;
-                    tradingDurationHistoryPointer = tradingDurationHistoryPointer +1 ;
+                    %tradingDurationHistory(tradingDurationHistoryPointer) = frameCount - tradingStart;
+                    %tradingDurationHistoryPointer = tradingDurationHistoryPointer +1 ;
                     plotPeriod = plotPeriodMain;
                     isTradingBanned = true;
                     
