@@ -8,10 +8,12 @@ distrCut_valueCahne = 3.0;
 p_ma_1 = 300;
 p_ma_2 = 3600;
 profitCutOff= 1.01; %1.04
-lossCutOff= 0.98; %0.6
-orderTimeoutThres = 1200;
-filteredDataDiff_fallback_upper = 0.8;
-filteredDataDiff_fallback_lower = 0.6;
+lossCutOff= 0.95; %0.6
+orderTimeoutThres = p_ma_2;
+filteredDataDiff_fallback_upper = 0.9;
+filteredDataDiff_fallback_lower = 0.8;
+backupThres = 1.2;
+plotPeriodMain = 50000;
 
 isFollowTrend = false;
 isValueChangeTriggerable = true;
@@ -45,7 +47,7 @@ PID_state.d = 0;
 PID_state.target =13000;
 PID_state.initialized = false;
 
-plotPeriodMain = 10000;
+
 plotPeriod = plotPeriodMain;
 
 
@@ -320,7 +322,7 @@ for yearIdx = 2009:2018
             %====== update account ===========
             if isSim
                 
-                if(ifBackup&&length(simUnits)==0&&account.NAV>10000*1.1)
+                if(ifBackup&&length(simUnits)==0&&account.NAV>10000*backupThres)
                     backup = backup+(account.NAV-10000);
                     account.balance = 10000;
                     
@@ -523,8 +525,8 @@ for yearIdx = 2009:2018
             end
             
             if(isTradingBanned)
-                if(filteredDataDiff(end)>ml_arm&&filteredDataDiff(end)<mr_arm)
-                    if(filteredDataDiff2(end)>ml2_arm&&filteredDataDiff2(end)<mr2_arm)
+                if(filteredDataDiff(end)>0.5*ml_arm&&filteredDataDiff(end)<0.5*mr_arm)
+                    if(filteredDataDiff2(end)>0.5*ml2_arm&&filteredDataDiff2(end)<0.5*mr2_arm)
                         disp("cancel TradingBanner");
                         isTradingBanned = false;
                     end
