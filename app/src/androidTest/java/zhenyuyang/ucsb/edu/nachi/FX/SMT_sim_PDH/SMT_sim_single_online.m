@@ -827,11 +827,13 @@ for yearIdx = 2009:2018
                         account.NAV = account.balance;
                         simTrade = [];
                         simUnits = [];
+                        disp(['[PDH buy timeout], tempProfit = ' num2str(tempProfit)]);
                     else
                         OrderBook = NewOrder('EUR_USD',-buyHolds);
+                        disp(['[PDH buy timeout]']);
                         %emailNotification('[PDH lose]')
                     end
-                    disp(['[PDH buy timeout], tempProfit = ' num2str(tempProfit)]);
+                    
                     if(abs(tempProfit)>=1000)
                        specialWatchPoint = frameCount; 
                     end
@@ -1010,11 +1012,13 @@ for yearIdx = 2009:2018
                         account.NAV = account.balance;
                         simTrade = [];
                         simUnits = [];
+                        disp(['[PDH sell timeout],tempProfit = ' num2str(tempProfit)]);
                     else
                         OrderBook = NewOrder('EUR_USD',-sellHolds);
                         %emailNotification('[PDH lose]')
+                        disp(['[PDH sell timeout]']);
                     end
-                    disp(['[PDH sell timeout],tempProfit = ' num2str(tempProfit)]);
+                    
                     
                     if(abs(tempProfit)>=1000)
                        specialWatchPoint = frameCount; 
