@@ -31,17 +31,16 @@ ml2_arm = -0.099;
 mr2_arm = 0.099;
 
 isSim = true;
-ifPlot = false;
+ifPlot = true;
 if(~isSim)
     ifPlot = true;
 end
 ifSlowHolding = false;
 ifLoss = false;
-ifOrderTimeout = true;
 
 orderTimeoutState = false;
 
-ifBackup = true;
+ifBackup = false;
 %======= PID controller
 PID_state.p = 0.0003;
 PID_state.i = 0;
@@ -653,7 +652,7 @@ for yearIdx = 2009:2018
             end
             
             
-            if(ifOrderTimeout&&(buyHolds~=0||sellHolds~=0))
+            if((buyHolds~=0||sellHolds~=0)&&BenefitRatio<1)
                 if(frameCount - tradingStart>orderTimeoutThres)
                     orderTimeoutState = true;
                 end
