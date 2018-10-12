@@ -30,8 +30,8 @@ mr_arm = 0.099;
 ml2_arm = -0.099;
 mr2_arm = 0.099;
 
-isSim = true;
-ifPlot = false;
+isSim = false;
+ifPlot = true;
 if(~isSim)
     ifPlot = true;
 end
@@ -120,8 +120,8 @@ MA_state2(2) = p_ma_2;
 
 
 if(MA_state2(2)>=maxPriod)
-   disp('maxPriod too small, not enough data for MovingAverage filter 2')
-   return;
+    disp('maxPriod too small, not enough data for MovingAverage filter 2')
+    return;
 end
 
 % MA_state.period = p;
@@ -828,15 +828,16 @@ for yearIdx = 2009:2018
                         simTrade = [];
                         simUnits = [];
                         disp(['[PDH buy timeout], tempProfit = ' num2str(tempProfit)]);
+                        if(abs(tempProfit)>=1000)
+                            specialWatchPoint = frameCount;
+                        end
                     else
                         OrderBook = NewOrder('EUR_USD',-buyHolds);
                         disp(['[PDH buy timeout]']);
                         %emailNotification('[PDH lose]')
                     end
                     
-                    if(abs(tempProfit)>=1000)
-                       specialWatchPoint = frameCount; 
-                    end
+                    
                     %disp(['[lose]close buy order at ',num2str(newPrice),' with amount ',num2str(buyHolds),'BenefitRatio = ',num2str(BenefitRatio),', expScale = ',num2str(expScale)]);
                     beep
                     numOfLoss = numOfLoss+1;
@@ -1013,6 +1014,9 @@ for yearIdx = 2009:2018
                         simTrade = [];
                         simUnits = [];
                         disp(['[PDH sell timeout],tempProfit = ' num2str(tempProfit)]);
+                        if(abs(tempProfit)>=1000)
+                            specialWatchPoint = frameCount;
+                        end
                     else
                         OrderBook = NewOrder('EUR_USD',-sellHolds);
                         %emailNotification('[PDH lose]')
@@ -1020,9 +1024,7 @@ for yearIdx = 2009:2018
                     end
                     
                     
-                    if(abs(tempProfit)>=1000)
-                       specialWatchPoint = frameCount; 
-                    end
+                    
                     
                     %disp(['[lose]close sell order at ',num2str(newPrice),' with amount ',num2str(sellHolds),'BenefitRatio = ',num2str(BenefitRatio),', expScale = ',num2str(expScale)]);
                     beep
@@ -1048,14 +1050,14 @@ for yearIdx = 2009:2018
             end
             
             if((~isSim&&length(data)>1)||(ifPlot&&length(data)>1&&lastOrderFrame~=0&&(frameCount - lastOrderFrame==1000 || (frameCount -specialWatchPoint ==1000))))
-            %if(ifPlot&&length(data)>1&&mod(frameCount,plotPeriod)==0)
+                %if(ifPlot&&length(data)>1&&mod(frameCount,plotPeriod)==0)
                 SMTPlot3;
                 if isSim
                     pause(0.1);
                 end
                 
                 if((frameCount -specialWatchPoint ==1000))
-                   aaa = 1; 
+                    aaa = 1;
                 end
             end
             
