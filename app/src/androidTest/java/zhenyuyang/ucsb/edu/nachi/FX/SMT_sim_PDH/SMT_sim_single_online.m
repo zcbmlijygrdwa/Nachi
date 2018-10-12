@@ -33,7 +33,7 @@ mr2_arm = 0.099;
 
 isSim = false;
 
-ifPlot = true;
+ifPlot = false;
 if(~isSim)
     ifPlot = true;
 end
@@ -728,13 +728,14 @@ for yearIdx = 2009:2018
                         account.NAV = account.balance;
                         simTrade = [];
                         simUnits = [];
+                        disp(['[PDH win - ' num2str(traderLevelLeft) '], tempProfit = ' num2str(tempProfit)]);
                     else
                         OrderBook = NewOrder('EUR_USD',-buyHolds);
-                        
+                        disp(['[PDH win - ' num2str(traderLevelLeft) ']']);
                         %emailNotification('[PDH win]')
                     end
                     %disp(['***[win]close buy order at ',num2str(newPrice),' with amount ',num2str(buyHolds),'BenefitRatio = ',num2str(BenefitRatio),', expScale = ',num2str(expScale)]);
-                    disp(['[PDH win - ' num2str(traderLevelLeft) '], tempProfit = ' num2str(tempProfit)]);
+                    
                     traderLevelLeftHist = [traderLevelLeftHist;traderLevelLeft];
                     buyHolds = 0;
                     traderLevelLeft = traderLevelMax;
@@ -912,8 +913,10 @@ for yearIdx = 2009:2018
                         account.NAV = account.balance;
                         simTrade = [];
                         simUnits = [];
+                        disp(['[PDH win - ' num2str(traderLevelLeft) '], tempProfit  =' num2str(tempProfit)]);
                     else
                         OrderBook = NewOrder('EUR_USD',-sellHolds);
+                        disp(['[PDH win - ' num2str(traderLevelLeft) ']']);
                         %emailNotification('[PDH win]')
                     end
                     
@@ -922,7 +925,7 @@ for yearIdx = 2009:2018
                     
                     
                     %disp(['[win]close sell order at ',num2str(newPrice),' with amount ',num2str(sellHolds),'BenefitRatio = ',num2str(BenefitRatio),', expScale = ',num2str(expScale)]);
-                    disp(['[PDH win - ' num2str(traderLevelLeft) '], tempProfit  =' num2str(tempProfit)]);
+                    
                     traderLevelLeftHist = [traderLevelLeftHist;traderLevelLeft];
                     sellHolds = 0;
                     traderLevelLeft = traderLevelMax;
