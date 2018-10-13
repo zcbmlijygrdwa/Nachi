@@ -35,7 +35,7 @@ mr2_arm = 0.099;
 
 isSim = true;
 
-ifPlot = false;
+ifPlot = true;
 if(~isSim)
     ifPlot = true;
 end
@@ -152,10 +152,10 @@ dataSInit = 0;
 
 % maObject = MAFilter_continue(MAPeriod);
 filteredMAData = [];
-filteredData = [];
+filteredData = zeros(maxPriod,1);
 filteredDataDiff = zeros(maxPriod,1);
 filteredDataDiff_pointer = 0;
-filteredData2 = [];
+filteredData2 = zeros(maxPriod,1);
 filteredDataDiff2 = zeros(maxPriod,1);
 filteredDataDiff2_pointer = 0;
 maxAfterTriggered_filteredDataDiff = 0;
@@ -465,44 +465,49 @@ for yearIdx = 2009:2018
                     
                     filteredData2 = circshift(filteredData2,-1);
                     filteredData2(end) = MA_state2(3);
+                    
+                    filteredDataDiff = circshift(filteredDataDiff,-1);
+                    filteredDataDiff_current = newPrice - MA_state(3);
+                    filteredDataDiff(end) = filteredDataDiff_current;
+                    
+                    filteredDataDiff2 = circshift(filteredDataDiff2,-1);
+                    filteredDataDiff2_current = newPrice - MA_state2(3);
+                    filteredDataDiff2(end) = filteredDataDiff2_current;
+                    
+                    
+                    
                 else
                     filteredData = [filteredData; MA_state(3)];
                     
                     filteredData2 = [filteredData2; MA_state2(3)];
+                    
+                    filteredDataDiff_current = newPrice - MA_state(3);
+                    filteredDataDiff = [filteredDataDiff;filteredDataDiff_current];
+                    
+                    filteredDataDiff2_current = newPrice - MA_state2(3);
+                    filteredDataDiff2 = [filteredDataDiff2;filteredDataDiff2_current];
+                    
+                    
                 end
-            end
-            
-            if(filteredDataDiff_pointer +1>maxPriod)
-                filteredDataDiff_pointer = 1;
+                
+                
             else
-                filteredDataDiff_pointer = filteredDataDiff_pointer +1;
+                
+                
+                if(filteredDataDiff_pointer +1>maxPriod)
+                    filteredDataDiff_pointer = 1;
+                    filteredDataDiff2_pointer = 1;
+                else
+                    filteredDataDiff_pointer = filteredDataDiff_pointer +1;
+                    filteredDataDiff2_pointer = filteredDataDiff2_pointer +1;
+                end
+                filteredDataDiff_current = newPrice - MA_state(3);
+                filteredDataDiff(filteredDataDiff_pointer) =filteredDataDiff_current;
+                
+                filteredDataDiff2_current = newPrice - MA_state2(3);
+                filteredDataDiff2(filteredDataDiff2_pointer) = filteredDataDiff2_current;
             end
-            filteredDataDiff(filteredDataDiff_pointer) = newPrice - MA_state(3);
             
-            
-            
-            if(filteredDataDiff2_pointer +1>maxPriod)
-                filteredDataDiff2_pointer = 1;
-            else
-                filteredDataDiff2_pointer = filteredDataDiff2_pointer +1;
-            end
-            filteredDataDiff2(filteredDataDiff2_pointer) = newPrice - MA_state2(3);
-            
-            
-%             if(length(filteredDataDiff)>=maxPriod)
-%                 
-%                 filteredDataDiff = circshift(filteredDataDiff,-1);
-%                 filteredDataDiff(filteredDataDiff_pointer) = newPrice - MA_state(3);
-%                 %filteredDataDiff(filteredDataDiff_pointer) = newPrice - MA_state.result;
-%                 
-%                 filteredDataDiff2 = circshift(filteredDataDiff2,-1);
-%                 filteredDataDiff2(filteredDataDiff2_pointer) = newPrice - MA_state2(3);
-%                 %filteredDataDiff2(filteredDataDiff2_pointer) = newPrice - MA_state2.result;
-%             else
-%                 filteredDataDiff = [filteredDataDiff;newPrice - MA_state(3)];
-%                 
-%                 filteredDataDiff2 = [filteredDataDiff2;newPrice - MA_state2(3)];
-%             end
             
             
             %filteredDataDiff_rescale = rescale(filteredDataDiff);
@@ -540,21 +545,21 @@ for yearIdx = 2009:2018
             end
             
             
-%             if(filteredDataDiff2(filteredDataDiff2_pointer)<ml2_arm)
-%                 aa = 1;
-%             end
+            %             if(filteredDataDiff2_current<ml2_arm)
+            %                 aa = 1;
+            %             end
             
             %restore isRSIHit if both diffs go into peace region
             if((buyHolds==0&&sellHolds==0) ...
-                    &&((filteredDataDiff(filteredDataDiff_pointer)>ml_arm&&filteredDataDiff2(filteredDataDiff2_pointer)>ml2_arm)&&(filteredDataDiff(filteredDataDiff_pointer)<mr_arm&&filteredDataDiff2(filteredDataDiff2_pointer)<mr2_arm)) ...
+                    &&((filteredDataDiff_current>ml_arm&&filteredDataDiff2_current>ml2_arm)&&(filteredDataDiff_current<mr_arm&&filteredDataDiff2_current<mr2_arm)) ...
                     )
                 isRSIHit = false;
                 maxAfterTriggered_filteredDataDiff = 0;
             end
             
             if(buyHolds==0&&sellHolds==0&&isTradingBanned)
-                if(filteredDataDiff(filteredDataDiff_pointer)>0.5*ml_arm&&filteredDataDiff(filteredDataDiff_pointer)<0.5*mr_arm)
-                    if(filteredDataDiff2(filteredDataDiff2_pointer)>0.5*ml2_arm&&filteredDataDiff2(filteredDataDiff2_pointer)<0.5*mr2_arm)
+                if(filteredDataDiff_current>0.5*ml_arm&&filteredDataDiff_current<0.5*mr_arm)
+                    if(filteredDataDiff2_current>0.5*ml2_arm&&filteredDataDiff2_current<0.5*mr2_arm)
                         disp("cancel TradingBanner");
                         isTradingBanned = false;
                     end
@@ -564,27 +569,27 @@ for yearIdx = 2009:2018
             
             if(buyHolds==0&&sellHolds==0&&(~isTradingBanned))
                 
-                if(filteredDataDiff(filteredDataDiff_pointer)<ml_arm||filteredDataDiff(filteredDataDiff_pointer)>mr_arm)
+                if(filteredDataDiff_current<ml_arm||filteredDataDiff_current>mr_arm)
                     if(maxAfterTriggered_filteredDataDiff==0)
-                        maxAfterTriggered_filteredDataDiff = (filteredDataDiff(filteredDataDiff_pointer));
+                        maxAfterTriggered_filteredDataDiff = (filteredDataDiff_current);
                     else
                         %same sign check
-                        if(maxAfterTriggered_filteredDataDiff*filteredDataDiff(filteredDataDiff_pointer)<0)
+                        if(maxAfterTriggered_filteredDataDiff*filteredDataDiff_current<0)
                             disp('same sign check on filteredDataDiff failed');
                             isRSIHit = false;
                             maxAfterTriggered_filteredDataDiff = 0;
                         end
                         %update max
-                        if(abs(maxAfterTriggered_filteredDataDiff)<abs(filteredDataDiff(filteredDataDiff_pointer)))
-                            maxAfterTriggered_filteredDataDiff = filteredDataDiff(filteredDataDiff_pointer);
+                        if(abs(maxAfterTriggered_filteredDataDiff)<abs(filteredDataDiff_current))
+                            maxAfterTriggered_filteredDataDiff = filteredDataDiff_current;
                         end
                     end
                     
-                    if(filteredDataDiff2(filteredDataDiff2_pointer)<ml2_arm||filteredDataDiff2(filteredDataDiff2_pointer)>mr2_arm)
-                        if((isSim&&frameCount>=3*maxPriod||~isSim)) &&((filteredDataDiff2(filteredDataDiff2_pointer)>ml2_VC&&filteredDataDiff2(filteredDataDiff2_pointer)<mr2_VC))
+                    if(filteredDataDiff2_current<ml2_arm||filteredDataDiff2_current>mr2_arm)
+                        if((isSim&&frameCount>=3*maxPriod||~isSim)) &&((filteredDataDiff2_current>ml2_VC&&filteredDataDiff2_current<mr2_VC))
                             lastHitFrame = frameCount;
                             isRSIHit = true;
-                            maxAfterTriggered_filteredDataDiff2 = (filteredDataDiff2(filteredDataDiff2_pointer));
+                            maxAfterTriggered_filteredDataDiff2 = (filteredDataDiff2_current);
                         end
                         
                     else
@@ -593,7 +598,7 @@ for yearIdx = 2009:2018
                         end
                     end
                     
-                    if(filteredDataDiff2(filteredDataDiff2_pointer)<ml2_VC||filteredDataDiff2(filteredDataDiff2_pointer)>mr2_VC)
+                    if(filteredDataDiff2_current<ml2_VC||filteredDataDiff2_current>mr2_VC)
                         if(isValueChangeTriggerable&&(isSim&&frameCount>=3*maxPriod||~isSim))
                             disp('Value change point! Guess trend will keep going')
                             isValueChangeTriggerable = false;
@@ -622,13 +627,13 @@ for yearIdx = 2009:2018
             
             
             %             if((buyHolds==0&&sellHolds==0) ...
-            %                 &&((filteredDataDiff(filteredDataDiff_pointer)<ml&&filteredDataDiff2(filteredDataDiff2_pointer)<ml2)||(filteredDataDiff(filteredDataDiff_pointer)>mr&&filteredDataDiff2(filteredDataDiff2_pointer)>mr2)) ...
+            %                 &&((filteredDataDiff_current<ml&&filteredDataDiff2_current<ml2)||(filteredDataDiff_current>mr&&filteredDataDiff2_current>mr2)) ...
             %                 &&(isSim&&frameCount>=3*maxPriod||~isSim) ...
             %                 )
             %                 lastHitFrame = frameCount;
             %                 isRSIHit = true;
-            %                 maxAfterTriggered_filteredDataDiff = (filteredDataDiff(filteredDataDiff_pointer));
-            %                 maxAfterTriggered_filteredDataDiff2 = (filteredDataDiff2(filteredDataDiff2_pointer));
+            %                 maxAfterTriggered_filteredDataDiff = (filteredDataDiff_current);
+            %                 maxAfterTriggered_filteredDataDiff2 = (filteredDataDiff2_current);
             %
             %             end
             
@@ -638,13 +643,13 @@ for yearIdx = 2009:2018
             if(isRSIHit)
                 
                 %same sign check
-                if(maxAfterTriggered_filteredDataDiff2*filteredDataDiff2(filteredDataDiff2_pointer)<0)
+                if(maxAfterTriggered_filteredDataDiff2*filteredDataDiff2_current<0)
                     disp('same sign check on filteredDataDiff2 failed');
                     isRSIHit = false;
                 end
                 
-                if(abs(maxAfterTriggered_filteredDataDiff2)<abs(filteredDataDiff2(filteredDataDiff2_pointer)))
-                    maxAfterTriggered_filteredDataDiff2 = filteredDataDiff2(filteredDataDiff2_pointer);
+                if(abs(maxAfterTriggered_filteredDataDiff2)<abs(filteredDataDiff2_current))
+                    maxAfterTriggered_filteredDataDiff2 = filteredDataDiff2_current;
                 end
                 
                 if(frameCount - lastHitFrame<100)
@@ -652,8 +657,8 @@ for yearIdx = 2009:2018
                     %fall-back verification: verify if filteredDataDiff
                     %falls back to desired region from maxAfterTriggered_filteredDataDiff
                     
-                    if(abs(filteredDataDiff(filteredDataDiff_pointer))>filteredDataDiff_fallback_lower*abs(maxAfterTriggered_filteredDataDiff) ...
-                            && abs(filteredDataDiff(filteredDataDiff_pointer))<filteredDataDiff_fallback_upper*abs(maxAfterTriggered_filteredDataDiff))
+                    if(abs(filteredDataDiff_current)>filteredDataDiff_fallback_lower*abs(maxAfterTriggered_filteredDataDiff) ...
+                            && abs(filteredDataDiff_current)<filteredDataDiff_fallback_upper*abs(maxAfterTriggered_filteredDataDiff))
                         %calculate slop of filteredData
                         %slop = filteredData(end) - filteredData(end-3);
                         %slop1 = data(end) - data(end-1);
@@ -694,7 +699,7 @@ for yearIdx = 2009:2018
             
             
             %buy trading
-            if(isFire&&buyHolds==0&&sellHolds==0&&(~isFollowTrend&&filteredDataDiff(filteredDataDiff_pointer)<0||(isFollowTrend&&filteredDataDiff(filteredDataDiff_pointer)>0)))
+            if(isFire&&buyHolds==0&&sellHolds==0&&(~isFollowTrend&&filteredDataDiff_current<0||(isFollowTrend&&filteredDataDiff_current>0)))
                 isFollowTrend = false;
                 isFire = false;
                 buyCost = newPrice;
@@ -880,7 +885,7 @@ for yearIdx = 2009:2018
             
             
             %sell trading
-            if(isFire&&buyHolds==0&&sellHolds==0&&(~isFollowTrend&&filteredDataDiff(filteredDataDiff_pointer)>0||(isFollowTrend&&filteredDataDiff(filteredDataDiff_pointer)<0)))
+            if(isFire&&buyHolds==0&&sellHolds==0&&(~isFollowTrend&&filteredDataDiff_current>0||(isFollowTrend&&filteredDataDiff_current<0)))
                 isFollowTrend = false;
                 
                 sellHolds = int32((balance/newPrice)*(leverage-1));
@@ -1097,11 +1102,17 @@ for yearIdx = 2009:2018
                 pause(1);
             end
             
+            if(frameCount==300000)
+                aaa = 1;
+            end
             
             
         end
         
         dataCount = 0;
+        
+        
+        
         
         
         if(yearIdx==2018&&monthIdx==7)
