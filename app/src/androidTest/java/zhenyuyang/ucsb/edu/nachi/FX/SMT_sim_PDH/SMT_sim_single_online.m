@@ -567,7 +567,7 @@ for yearIdx = 2009:2018
             end
             
             
-            if(buyHolds==0&&sellHolds==0&&(~isTradingBanned))
+            if(buyHolds==0&&sellHolds==0&&(~isTradingBanned)&&frameCount>maxPriod)
                 
                 if(filteredDataDiff_current<ml_arm||filteredDataDiff_current>mr_arm)
                     if(maxAfterTriggered_filteredDataDiff==0)
