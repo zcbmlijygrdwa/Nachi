@@ -18,8 +18,14 @@ if(ifPlot&&length(IP_idx)~=0)
 end
 plot(data)
 hold on
-plot(filteredData)
-plot(filteredData2)
+if(length(data)~=length(filteredData))
+    plot(filteredData(end-length(data):end))
+    plot(filteredData2(end-length(data):end))
+else
+    plot(filteredData)
+    plot(filteredData2)
+end
+
 if(length(IP_idx)~=0&&length(IP)~=0)
     plot(IP_idx,IP,'or'); %plot IP
 end
@@ -27,11 +33,17 @@ hold off
 xlim([1,length(data)]);
 
 subplot(6,2,5:6)
-plot(filteredDataDiff)
-hold on
-plot(filteredDataDiff2)
+if(length(data)~=length(filteredDataDiff))
+    plot(filteredDataDiff(end-length(data):end))
+    hold on
+    plot(filteredDataDiff2(end-length(data):end))
+else
+    plot(filteredDataDiff)
+    hold on
+    plot(filteredDataDiff2)
+end
 hold off
-xlim([1,length(filteredDataDiff2)]);
+xlim([1,length(data)]);
 
 minD = min([min(filteredDataDiff),ml_arm]) - 0.00001;
 maxD = max([max(filteredDataDiff),mr_arm]) + 0.00001;
