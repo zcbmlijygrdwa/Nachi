@@ -43,13 +43,13 @@ if(sellHolds~=0||buyHolds~=0)
 end
 % tradingDurationHistoryTop = sort(tradingDurationHistory);
 % tradingDurationHistoryTopHours = tradingDurationHistoryTop(end-5:end)/3600
-
+figure(),hist(tradingDurationHistory,[-5:1:20])
 
 %score calculation
-if((abs(sellHolds)+abs(buyHolds))==0&&length(minBR)>0&&minBR>0.6&&int32(max(tradingDurationHistory)/3600)<48)
-    score = balance+minBR*10+double(10/(1+int32(max(tradingDurationHistory)/3600)));
-else
-    score = 0;
-    disp('0 score!');
-end
+% if((abs(sellHolds)+abs(buyHolds))==0&&length(minBR)>0&&minBR>0.6&&int32(max(tradingDurationHistory)/3600)<48)
+%     score = balance+minBR*10+double(10/(1+int32(max(tradingDurationHistory)/3600)));
+% else
+%     score = 0;
+%     disp('0 score!');
+% end
 

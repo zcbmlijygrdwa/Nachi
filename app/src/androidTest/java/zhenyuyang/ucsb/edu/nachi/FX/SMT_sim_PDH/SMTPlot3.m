@@ -19,11 +19,11 @@ end
 plot(data)
 hold on
 if(length(data)~=length(filteredData))
-    plot(filteredData(end-length(data):end))
-    plot(filteredData2(end-length(data):end))
+    plot(filteredData(end-length(data):end),'m')
+    plot(filteredData2(end-length(data):end),'g')
 else
-    plot(filteredData)
-    plot(filteredData2)
+    plot(filteredData,'m')
+    plot(filteredData2,'g')
 end
 
 if(length(IP_idx)~=0&&length(IP)~=0)
@@ -33,14 +33,15 @@ hold off
 xlim([1,length(data)]);
 
 subplot(6,2,5:6)
+
+plot(zeros(length(data),1))
+hold on
 if(length(data)~=length(filteredDataDiff))
-    plot(filteredDataDiff(end-length(data):end))
-    hold on
-    plot(filteredDataDiff2(end-length(data):end))
+    plot(filteredDataDiff(end-length(data):end),'m')
+    plot(filteredDataDiff2(end-length(data):end),'g')
 else
-    plot(filteredDataDiff)
-    hold on
-    plot(filteredDataDiff2)
+    plot(filteredDataDiff,'m')
+    plot(filteredDataDiff2,'g')
 end
 hold off
 xlim([1,length(data)]);

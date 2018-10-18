@@ -4,18 +4,19 @@ close all
 maxBalance = 0;
 
 traderLevelMax= 1;
-maxPriod= 3600*5;
+
 distrCut_arm = 2.5;
-distrCut_valueCahne = 3.0;
-p_ma_1 = 300;
-p_ma_2 = 3600;
-profitCutOff= 1.005; %1.04
+distrCut_valueCahne = 5.0;
+p_ma_1 = 30;
+p_ma_2 = 720;
+maxPriod= p_ma_2*3;
+profitCutOff= 1.01; %1.04
 lossCutOff= 0.95; %0.6
-orderTimeoutThres = 600;
+orderTimeoutThres = 5;
 filteredDataDiff_fallback_upper = 0.9;
 filteredDataDiff_fallback_lower = 0.8;
 backupThres = 5;
-plotPeriodMain = 50000;
+plotPeriodMain = 5000;
 
 isFollowTrend = false;
 isValueChangeTriggerable = true;
@@ -122,7 +123,7 @@ MA_state2(1) = 0;
 MA_state2(2) = p_ma_2;
 
 
-if(MA_state2(2)>=maxPriod)
+if(MA_state2(2)>maxPriod)
     disp('maxPriod too small, not enough data for MovingAverage filter 2')
     return;
 end
@@ -247,7 +248,7 @@ if ifPlot
     figure(1)
 end
 
-for yearIdx = 2009:2018
+for yearIdx = 2018:2018
     
     if(yearIdx==2009)
         months = 5:12;
@@ -534,6 +535,9 @@ for yearIdx = 2009:2018
                 ml_arm = m-distrCut_arm*s;
                 mr_arm = m+distrCut_arm*s;
                 
+                ml_VC = m-distrCut_valueCahne*s;
+                mr_VC = m+distrCut_valueCahne*s;
+                
                 [m2,s2] = normfit(filteredDataDiff2);
                 ml2_arm = m2-distrCut_arm*s2;
                 mr2_arm = m2+distrCut_arm*s2;
@@ -587,9 +591,9 @@ for yearIdx = 2009:2018
                     
                     if(filteredDataDiff2_current<ml2_arm||filteredDataDiff2_current>mr2_arm)
                         if((isSim&&frameCount>=3*maxPriod||~isSim)) &&((filteredDataDiff2_current>ml2_VC&&filteredDataDiff2_current<mr2_VC))
-                            lastHitFrame = frameCount;
-                            isRSIHit = true;
-                            maxAfterTriggered_filteredDataDiff2 = (filteredDataDiff2_current);
+                            %                             lastHitFrame = frameCount;
+                            %                             isRSIHit = true;
+                            %                             maxAfterTriggered_filteredDataDiff2 = (filteredDataDiff2_current);
                         end
                         
                     else
@@ -598,23 +602,26 @@ for yearIdx = 2009:2018
                         end
                     end
                     
-                    if(filteredDataDiff2_current<ml2_VC||filteredDataDiff2_current>mr2_VC)
+                    if(filteredDataDiff2_current<ml_VC||filteredDataDiff2_current>mr_VC)
                         if(isValueChangeTriggerable&&(isSim&&frameCount>=3*maxPriod||~isSim))
-                            disp('Value change point! Guess trend will keep going')
-                            isValueChangeTriggerable = false;
-                            isFollowTrend = true;
-                            isTradingBanned = true;
-                            isRSIHit = false;
-                            isFire = true;
-                            orderTimeoutState = false;
-                            lastOrderFrame = frameCount;
-                            if(ifPlot)
-                                IP_idx_current =  length(data);
-                                IP_idx = [IP_idx IP_idx_current];
-                            end
-                            if(ifSlowHolding)
-                                plotPeriod = 1;
-                                beep;
+                            slop = (data(end)-data(end-2))/data(end-2)
+                            if(abs(slop)>5e-04)
+                                disp('Value change point! Guess trend will keep going')
+                                isValueChangeTriggerable = false;
+                                isFollowTrend = true;
+                                isTradingBanned = true;
+                                isRSIHit = false;
+                                isFire = true;
+                                orderTimeoutState = false;
+                                lastOrderFrame = frameCount;
+                                if(ifPlot)
+                                    IP_idx_current =  length(data);
+                                    IP_idx = [IP_idx IP_idx_current];
+                                end
+                                if(ifSlowHolding)
+                                    plotPeriod = 1;
+                                    beep;
+                                end
                             end
                         end
                         
@@ -759,6 +766,7 @@ for yearIdx = 2009:2018
                         simTrade = [];
                         simUnits = [];
                         disp(['[PDH win - ' num2str(traderLevelLeft) '], tempProfit = ' num2str(tempProfit)]);
+                        specialWatchPoint = frameCount;
                     else
                         OrderBook = NewOrder('EUR_USD',-buyHolds);
                         disp(['[PDH win - ' num2str(traderLevelLeft) ']']);
@@ -860,7 +868,7 @@ for yearIdx = 2009:2018
                         simTrade = [];
                         simUnits = [];
                         disp(['[PDH buy timeout], tempProfit = ' num2str(tempProfit)]);
-                        if(abs(tempProfit)>=1000)
+                        if(tempProfit<-100)
                             specialWatchPoint = frameCount;
                         end
                     else
@@ -944,6 +952,7 @@ for yearIdx = 2009:2018
                         simTrade = [];
                         simUnits = [];
                         disp(['[PDH win - ' num2str(traderLevelLeft) '], tempProfit  =' num2str(tempProfit)]);
+                        specialWatchPoint = frameCount;
                     else
                         OrderBook = NewOrder('EUR_USD',-sellHolds);
                         disp(['[PDH win - ' num2str(traderLevelLeft) ']']);
@@ -1048,7 +1057,7 @@ for yearIdx = 2009:2018
                         simTrade = [];
                         simUnits = [];
                         disp(['[PDH sell timeout],tempProfit = ' num2str(tempProfit)]);
-                        if(abs(tempProfit)>=1000)
+                        if(tempProfit<0)
                             specialWatchPoint = frameCount;
                         end
                     else
