@@ -602,7 +602,7 @@ for yearIdx = 2018:2018
                         end
                     end
                     
-                    if(filteredDataDiff2_current<ml_VC||filteredDataDiff2_current>mr_VC)
+                    if(filteredDataDiff_current<ml_VC||filteredDataDiff_current>mr_VC)
                         if(isValueChangeTriggerable&&(isSim&&frameCount>=3*maxPriod||~isSim))
                             slop = (data(end)-data(end-2))/data(end-2)
                             if(abs(slop)>5e-04)
