@@ -5,14 +5,14 @@ maxBalance = 0;
 
 traderLevelMax= 1;
 
-distrCut_arm = 2.5;
-distrCut_valueCahne = 5.0;
+distrCut_arm = 1.0;
+distrCut_valueCahne = distrCut_arm;
 p_ma_1 = 30;
 p_ma_2 = 720;
 maxPriod= p_ma_2*3;
-profitCutOff= 1.01; %1.04
+profitCutOff= 1.04; %1.04
 lossCutOff= 0.95; %0.6
-orderTimeoutThres = 5;
+orderTimeoutThres = 3;
 filteredDataDiff_fallback_upper = 0.9;
 filteredDataDiff_fallback_lower = 0.8;
 backupThres = 5;
@@ -36,7 +36,7 @@ mr2_arm = 0.099;
 
 isSim = true;
 
-ifPlot = true;
+ifPlot = false;
 if(~isSim)
     ifPlot = true;
 end
@@ -149,8 +149,10 @@ triggerTime = 0;
 
 dataBInit = 0;
 dataSInit = 0;
-
-
+if (~ifPlot)
+data = zeros(maxPriod,1);
+data_pointer = 0;
+end
 % maObject = MAFilter_continue(MAPeriod);
 filteredMAData = [];
 filteredData = zeros(maxPriod,1);
@@ -323,10 +325,20 @@ for yearIdx = 2018:2018
                 else
                     dataN = [dataN;newPrice];
                 end
+                data = dataN;
+                
+            else
+                
+                if(data_pointer +1>maxPriod)
+                    data_pointer = 1;
+                else
+                    data_pointer = data_pointer +1;
+                end
+                data(data_pointer) =newPrice;
             end
             
+
             
-            data = dataN;
             
             %====== update account ===========
             if isSim
@@ -574,37 +586,47 @@ for yearIdx = 2018:2018
             if(buyHolds==0&&sellHolds==0&&(~isTradingBanned)&&frameCount>maxPriod)
                 
                 if(filteredDataDiff_current<ml_arm||filteredDataDiff_current>mr_arm)
-                    if(maxAfterTriggered_filteredDataDiff==0)
-                        maxAfterTriggered_filteredDataDiff = (filteredDataDiff_current);
-                    else
-                        %same sign check
-                        if(maxAfterTriggered_filteredDataDiff*filteredDataDiff_current<0)
-                            disp('same sign check on filteredDataDiff failed');
-                            isRSIHit = false;
-                            maxAfterTriggered_filteredDataDiff = 0;
-                        end
-                        %update max
-                        if(abs(maxAfterTriggered_filteredDataDiff)<abs(filteredDataDiff_current))
-                            maxAfterTriggered_filteredDataDiff = filteredDataDiff_current;
-                        end
-                    end
                     
+                    
+%                     if(maxAfterTriggered_filteredDataDiff==0)
+%                         maxAfterTriggered_filteredDataDiff = (filteredDataDiff_current);
+%                     else
+%                         %same sign check
+%                         if(maxAfterTriggered_filteredDataDiff*filteredDataDiff_current<0)
+%                             disp('same sign check on filteredDataDiff failed');
+%                             isRSIHit = false;
+%                             maxAfterTriggered_filteredDataDiff = 0;
+%                         end
+%                         %update max
+%                         if(abs(maxAfterTriggered_filteredDataDiff)<abs(filteredDataDiff_current))
+%                             maxAfterTriggered_filteredDataDiff = filteredDataDiff_current;
+%                         end
+%                     end
+%                     
                     if(filteredDataDiff2_current<ml2_arm||filteredDataDiff2_current>mr2_arm)
-                        if((isSim&&frameCount>=3*maxPriod||~isSim)) &&((filteredDataDiff2_current>ml2_VC&&filteredDataDiff2_current<mr2_VC))
-                            %                             lastHitFrame = frameCount;
-                            %                             isRSIHit = true;
-                            %                             maxAfterTriggered_filteredDataDiff2 = (filteredDataDiff2_current);
-                        end
+%                         if((isSim&&frameCount>=3*maxPriod||~isSim)) &&((filteredDataDiff2_current>ml2_VC&&filteredDataDiff2_current<mr2_VC))
+%                                                         lastHitFrame = frameCount;
+%                                                         isRSIHit = true;
+%                                                         maxAfterTriggered_filteredDataDiff2 = (filteredDataDiff2_current);
+%                         end
                         
                     else
                         if(~isValueChangeTriggerable)
                             isValueChangeTriggerable = true;
                         end
                     end
+
+
+    
                     
                     if(filteredDataDiff_current<ml_VC||filteredDataDiff_current>mr_VC)
                         if(isValueChangeTriggerable&&(isSim&&frameCount>=3*maxPriod||~isSim))
-                            slop = (data(end)-data(end-2))/data(end-2)
+                            
+                            if(ifPlot)
+                            slop = (data(end)-data(end-2))/data(end-2);
+                            else
+                            slop = (data(data_pointer) - data(circularMinus(maxPriod,data_pointer,2)))/data(data_pointer);
+                            end
                             if(abs(slop)>5e-04)
                                 disp('Value change point! Guess trend will keep going')
                                 isValueChangeTriggerable = false;
