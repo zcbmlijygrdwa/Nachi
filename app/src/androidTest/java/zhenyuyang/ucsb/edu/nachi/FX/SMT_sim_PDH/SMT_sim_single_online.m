@@ -41,7 +41,7 @@ mr2_arm = 0.099;
 
 isSim = true;
 
-ifPlot = true;
+ifPlot = false;
 if(~isSim)
     ifPlot = true;
 end
@@ -255,7 +255,7 @@ if ifPlot
     figure(1)
 end
 
-for yearIdx = 2018:2018
+for yearIdx = 2015:2015
     
     if(yearIdx==2009)
         months = 5:12;
