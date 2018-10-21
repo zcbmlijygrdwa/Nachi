@@ -10,7 +10,7 @@ maxBalance = 0;
 
 traderLevelMax= 1;
 
-distrCut_arm = 0.5;
+distrCut_arm = 0.1;
 distrCut_valueCahne = distrCut_arm;
 p_ma_1 = 30;
 p_ma_2 = 720;
@@ -41,7 +41,7 @@ mr2_arm = 0.099;
 
 isSim = true;
 
-ifPlot = false;
+ifPlot = true;
 if(~isSim)
     ifPlot = true;
 end
@@ -1223,10 +1223,6 @@ for yearIdx = 2018:2018
                 %pause(0.001);
             else
                 pause(1);
-            end
-            
-            if(frameCount==300000)
-                aaa = 1;
             end
             
             
