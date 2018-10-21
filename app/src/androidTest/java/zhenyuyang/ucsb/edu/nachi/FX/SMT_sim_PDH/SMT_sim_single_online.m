@@ -1,6 +1,11 @@
 clear all
 close all
 
+ifTrailingStop = true;
+currentprofitCutOffMax = 0;
+
+
+
 maxBalance = 0;
 
 traderLevelMax= 1;
@@ -150,8 +155,8 @@ triggerTime = 0;
 dataBInit = 0;
 dataSInit = 0;
 if (~ifPlot)
-data = zeros(maxPriod,1);
-data_pointer = 0;
+    data = zeros(maxPriod,1);
+    data_pointer = 0;
 end
 % maObject = MAFilter_continue(MAPeriod);
 filteredMAData = [];
@@ -337,7 +342,7 @@ for yearIdx = 2018:2018
                 data(data_pointer) =newPrice;
             end
             
-
+            
             
             
             %====== update account ===========
@@ -588,44 +593,44 @@ for yearIdx = 2018:2018
                 if(filteredDataDiff_current<ml_arm||filteredDataDiff_current>mr_arm)
                     
                     
-%                     if(maxAfterTriggered_filteredDataDiff==0)
-%                         maxAfterTriggered_filteredDataDiff = (filteredDataDiff_current);
-%                     else
-%                         %same sign check
-%                         if(maxAfterTriggered_filteredDataDiff*filteredDataDiff_current<0)
-%                             disp('same sign check on filteredDataDiff failed');
-%                             isRSIHit = false;
-%                             maxAfterTriggered_filteredDataDiff = 0;
-%                         end
-%                         %update max
-%                         if(abs(maxAfterTriggered_filteredDataDiff)<abs(filteredDataDiff_current))
-%                             maxAfterTriggered_filteredDataDiff = filteredDataDiff_current;
-%                         end
-%                     end
-%                     
+                    %                     if(maxAfterTriggered_filteredDataDiff==0)
+                    %                         maxAfterTriggered_filteredDataDiff = (filteredDataDiff_current);
+                    %                     else
+                    %                         %same sign check
+                    %                         if(maxAfterTriggered_filteredDataDiff*filteredDataDiff_current<0)
+                    %                             disp('same sign check on filteredDataDiff failed');
+                    %                             isRSIHit = false;
+                    %                             maxAfterTriggered_filteredDataDiff = 0;
+                    %                         end
+                    %                         %update max
+                    %                         if(abs(maxAfterTriggered_filteredDataDiff)<abs(filteredDataDiff_current))
+                    %                             maxAfterTriggered_filteredDataDiff = filteredDataDiff_current;
+                    %                         end
+                    %                     end
+                    %
                     if(filteredDataDiff2_current<ml2_arm||filteredDataDiff2_current>mr2_arm)
-%                         if((isSim&&frameCount>=3*maxPriod||~isSim)) &&((filteredDataDiff2_current>ml2_VC&&filteredDataDiff2_current<mr2_VC))
-%                                                         lastHitFrame = frameCount;
-%                                                         isRSIHit = true;
-%                                                         maxAfterTriggered_filteredDataDiff2 = (filteredDataDiff2_current);
-%                         end
+                        %                         if((isSim&&frameCount>=3*maxPriod||~isSim)) &&((filteredDataDiff2_current>ml2_VC&&filteredDataDiff2_current<mr2_VC))
+                        %                                                         lastHitFrame = frameCount;
+                        %                                                         isRSIHit = true;
+                        %                                                         maxAfterTriggered_filteredDataDiff2 = (filteredDataDiff2_current);
+                        %                         end
                         
                     else
                         if(~isValueChangeTriggerable)
                             isValueChangeTriggerable = true;
                         end
                     end
-
-
-    
+                    
+                    
+                    
                     
                     if(filteredDataDiff_current<ml_VC||filteredDataDiff_current>mr_VC)
                         if(isValueChangeTriggerable&&(isSim&&frameCount>=3*maxPriod||~isSim))
                             
                             if(ifPlot)
-                            slop = (data(end)-data(end-2))/data(end-2);
+                                slop = (data(end)-data(end-2))/data(end-2);
                             else
-                            slop = (data(data_pointer) - data(circularMinus(maxPriod,data_pointer,2)))/data(data_pointer);
+                                slop = (data(data_pointer) - data(circularMinus(maxPriod,data_pointer,2)))/data(data_pointer);
                             end
                             if(abs(slop)>5e-04)
                                 disp('Value change point! Guess trend will keep going')
@@ -770,80 +775,10 @@ for yearIdx = 2018:2018
                 
                 
                 
-                
-                if(BenefitRatio>currentprofitCutOff)
-                    %beep
-                    %disp('-----------------------------------');
-                    if isSim
-                        currentPrice = newPrice;
-                        currentBuyPrice = (price.closeoutAsk);
-                        tempProfit = 0;
-                        for ii = 1:length(simTrade)
-                            tempProfit = tempProfit + (currentPrice-simTrade(ii))*(double(simUnits(ii)));
-                        end
-                        balance = (account.balance);
-                        account.balance = balance+tempProfit;
-                        account.marginAvailable = account.balance;
-                        account.NAV = account.balance;
-                        simTrade = [];
-                        simUnits = [];
-                        disp(['[PDH win - ' num2str(traderLevelLeft) '], tempProfit = ' num2str(tempProfit)]);
-                        specialWatchPoint = frameCount;
-                    else
-                        OrderBook = NewOrder('EUR_USD',-buyHolds);
-                        disp(['[PDH win - ' num2str(traderLevelLeft) ']']);
-                        %emailNotification('[PDH win]')
-                    end
-                    %disp(['***[win]close buy order at ',num2str(newPrice),' with amount ',num2str(buyHolds),'BenefitRatio = ',num2str(BenefitRatio),', expScale = ',num2str(expScale)]);
-                    
-                    traderLevelLeftHist = [traderLevelLeftHist;traderLevelLeft];
-                    buyHolds = 0;
-                    traderLevelLeft = traderLevelMax;
-                    tradingDurationHistory(tradingDurationHistoryPointer) = frameCount - tradingStart;
-                    tradingDurationHistoryPointer = tradingDurationHistoryPointer +1 ;
-                    orderNumberPerMo = orderNumberPerMo+1;
-                    isRSIHit = false;
-                    plotPeriod = plotPeriodMain;
-                    numOfWin = numOfWin+1;
-                    isTradingBanned = true;
-                elseif(BenefitRatio<currentlossCutOff)%elseif(BenefitRatio<currentlossCutOff(traderLevelLeft+1))
-                    %beep
-                    %disp('-----------------------------------');
-                    if(traderLevelLeft>0)
-                        
-                        if isSim
-                            currentPrice = newPrice;
-                            currentBuyPrice = (price.closeoutAsk);
-                            simTrade = [simTrade;currentBuyPrice];
-                            simUnits = [simUnits;buyHolds];
-                            tempProfit = 0;
-                            for ii = 1:length(simTrade)
-                                tempProfit = tempProfit + (currentPrice-simTrade(ii))*(double(simUnits(ii)));
-                            end
-                            balance = (account.balance);
-                            %account.marginAvailable = (account.marginAvailable-(currentBuyPrice*double(buyHolds))/leverage);
-                            account.NAV = balance+tempProfit;
-                        else
-                            OrderBook = NewOrder('EUR_USD',buyHolds);
-                            account = GetAccounts_oanda;
-                        end
-                        
-                        
-                        
-                        
-                        
-                        
-                        balance = (account.balance);
-                        BenefitRatio = (account.NAV)/balance;
-                        %disp(['increse buy order at ',num2str(newPrice),' with amount ',num2str(buyHolds),'BenefitRatio = ',num2str(BenefitRatio),', expScale = ',num2str(expScale)]);
-                        buyHolds = buyHolds*2;
-                        traderLevelLeft = traderLevelLeft-1;
-                        
-                        
-                    elseif ifLoss
-                        
-                        %time = clock;
-                        %saveas(gcf,['C:\Users\Zhenyu\Desktop\fx_debug\dubug-' num2str(time(3)) '-' num2str(time(2)) '-' num2str(time(3)) '-' num2str(time(4)) '-' num2str(time(5)) '-' num2str(100*(time(6))) '.png'])
+                if(~ifTrailingStop)
+                    if(BenefitRatio>currentprofitCutOff)
+                        %beep
+                        %disp('-----------------------------------');
                         if isSim
                             currentPrice = newPrice;
                             currentBuyPrice = (price.closeoutAsk);
@@ -857,19 +792,131 @@ for yearIdx = 2018:2018
                             account.NAV = account.balance;
                             simTrade = [];
                             simUnits = [];
+                            disp(['[PDH win - ' num2str(traderLevelLeft) '], tempProfit = ' num2str(tempProfit)]);
+                            specialWatchPoint = frameCount;
                         else
                             OrderBook = NewOrder('EUR_USD',-buyHolds);
-                            %emailNotification('[PDH lose]')
+                            disp(['[PDH win - ' num2str(traderLevelLeft) ']']);
+                            %emailNotification('[PDH win]')
                         end
-                        disp('[PDH lose]');
-                        %disp(['[lose]close buy order at ',num2str(newPrice),' with amount ',num2str(buyHolds),'BenefitRatio = ',num2str(BenefitRatio),', expScale = ',num2str(expScale)]);
-                        beep
-                        numOfLoss = numOfLoss+1;
+                        %disp(['***[win]close buy order at ',num2str(newPrice),' with amount ',num2str(buyHolds),'BenefitRatio = ',num2str(BenefitRatio),', expScale = ',num2str(expScale)]);
+                        
+                        traderLevelLeftHist = [traderLevelLeftHist;traderLevelLeft];
                         buyHolds = 0;
                         traderLevelLeft = traderLevelMax;
-                        %tradingDurationHistory(tradingDurationHistoryPointer) = frameCount - tradingStart;
-                        %tradingDurationHistoryPointer = tradingDurationHistoryPointer +1 ;
+                        tradingDurationHistory(tradingDurationHistoryPointer) = frameCount - tradingStart;
+                        tradingDurationHistoryPointer = tradingDurationHistoryPointer +1 ;
+                        orderNumberPerMo = orderNumberPerMo+1;
+                        isRSIHit = false;
                         plotPeriod = plotPeriodMain;
+                        numOfWin = numOfWin+1;
+                        isTradingBanned = true;
+                    elseif(BenefitRatio<currentlossCutOff)%elseif(BenefitRatio<currentlossCutOff(traderLevelLeft+1))
+                        %beep
+                        %disp('-----------------------------------');
+                        if(traderLevelLeft>0)
+                            
+                            if isSim
+                                currentPrice = newPrice;
+                                currentBuyPrice = (price.closeoutAsk);
+                                simTrade = [simTrade;currentBuyPrice];
+                                simUnits = [simUnits;buyHolds];
+                                tempProfit = 0;
+                                for ii = 1:length(simTrade)
+                                    tempProfit = tempProfit + (currentPrice-simTrade(ii))*(double(simUnits(ii)));
+                                end
+                                balance = (account.balance);
+                                %account.marginAvailable = (account.marginAvailable-(currentBuyPrice*double(buyHolds))/leverage);
+                                account.NAV = balance+tempProfit;
+                            else
+                                OrderBook = NewOrder('EUR_USD',buyHolds);
+                                account = GetAccounts_oanda;
+                            end
+                            
+                            
+                            
+                            
+                            
+                            
+                            balance = (account.balance);
+                            BenefitRatio = (account.NAV)/balance;
+                            %disp(['increse buy order at ',num2str(newPrice),' with amount ',num2str(buyHolds),'BenefitRatio = ',num2str(BenefitRatio),', expScale = ',num2str(expScale)]);
+                            buyHolds = buyHolds*2;
+                            traderLevelLeft = traderLevelLeft-1;
+                            
+                            
+                        elseif ifLoss
+                            
+                            %time = clock;
+                            %saveas(gcf,['C:\Users\Zhenyu\Desktop\fx_debug\dubug-' num2str(time(3)) '-' num2str(time(2)) '-' num2str(time(3)) '-' num2str(time(4)) '-' num2str(time(5)) '-' num2str(100*(time(6))) '.png'])
+                            if isSim
+                                currentPrice = newPrice;
+                                currentBuyPrice = (price.closeoutAsk);
+                                tempProfit = 0;
+                                for ii = 1:length(simTrade)
+                                    tempProfit = tempProfit + (currentPrice-simTrade(ii))*(double(simUnits(ii)));
+                                end
+                                balance = (account.balance);
+                                account.balance = balance+tempProfit;
+                                account.marginAvailable = account.balance;
+                                account.NAV = account.balance;
+                                simTrade = [];
+                                simUnits = [];
+                            else
+                                OrderBook = NewOrder('EUR_USD',-buyHolds);
+                                %emailNotification('[PDH lose]')
+                            end
+                            disp('[PDH lose]');
+                            %disp(['[lose]close buy order at ',num2str(newPrice),' with amount ',num2str(buyHolds),'BenefitRatio = ',num2str(BenefitRatio),', expScale = ',num2str(expScale)]);
+                            beep
+                            numOfLoss = numOfLoss+1;
+                            buyHolds = 0;
+                            traderLevelLeft = traderLevelMax;
+                            %tradingDurationHistory(tradingDurationHistoryPointer) = frameCount - tradingStart;
+                            %tradingDurationHistoryPointer = tradingDurationHistoryPointer +1 ;
+                            plotPeriod = plotPeriodMain;
+                        end
+                    end
+                else
+                    if(BenefitRatio>1)
+                    if(currentprofitCutOffMax<BenefitRatio)
+                        currentprofitCutOffMax = BenefitRatio;
+                        disp(['new currentprofitCutOffMax = ' num2str(currentprofitCutOffMax)]);
+                    else
+                        %close order
+                        if isSim
+                            currentPrice = newPrice;
+                            currentBuyPrice = (price.closeoutAsk);
+                            tempProfit = 0;
+                            for ii = 1:length(simTrade)
+                                tempProfit = tempProfit + (currentPrice-simTrade(ii))*(double(simUnits(ii)));
+                            end
+                            balance = (account.balance);
+                            account.balance = balance+tempProfit;
+                            account.marginAvailable = account.balance;
+                            account.NAV = account.balance;
+                            simTrade = [];
+                            simUnits = [];
+                            disp(['[PDH win - ' num2str(traderLevelLeft) '], tempProfit = ' num2str(tempProfit)]);
+                            specialWatchPoint = frameCount;
+                        else
+                            OrderBook = NewOrder('EUR_USD',-buyHolds);
+                            disp(['[PDH win - ' num2str(traderLevelLeft) ']']);
+                            %emailNotification('[PDH win]')
+                        end
+                        
+                        traderLevelLeftHist = [traderLevelLeftHist;traderLevelLeft];
+                        buyHolds = 0;
+                        traderLevelLeft = traderLevelMax;
+                        tradingDurationHistory(tradingDurationHistoryPointer) = frameCount - tradingStart;
+                        tradingDurationHistoryPointer = tradingDurationHistoryPointer +1 ;
+                        orderNumberPerMo = orderNumberPerMo+1;
+                        isRSIHit = false;
+                        plotPeriod = plotPeriodMain;
+                        numOfWin = numOfWin+1;
+                        isTradingBanned = true;
+                        currentprofitCutOffMax = 0;
+                    end
                     end
                 end
                 
@@ -953,86 +1000,13 @@ for yearIdx = 2018:2018
             if(sellHolds~=0)
                 
                 
-                
-                if(BenefitRatio>currentprofitCutOff)
-                    %beep
-                    %disp('-----------------------------------');
-                    
-                    
-                    
-                    if isSim
-                        currentPrice = newPrice;
-                        currentSellPrice = (price.closeoutBid);
-                        tempProfit = 0;
-                        for ii = 1:length(simTrade)
-                            tempProfit = tempProfit + (currentPrice-simTrade(ii))*(double(simUnits(ii)));
-                        end
-                        balance = (account.balance);
-                        account.balance = balance+tempProfit;
-                        account.marginAvailable = account.balance;
-                        account.NAV = account.balance;
-                        simTrade = [];
-                        simUnits = [];
-                        disp(['[PDH win - ' num2str(traderLevelLeft) '], tempProfit  =' num2str(tempProfit)]);
-                        specialWatchPoint = frameCount;
-                    else
-                        OrderBook = NewOrder('EUR_USD',-sellHolds);
-                        disp(['[PDH win - ' num2str(traderLevelLeft) ']']);
-                        %emailNotification('[PDH win]')
-                    end
-                    
-                    
-                    
-                    
-                    
-                    %disp(['[win]close sell order at ',num2str(newPrice),' with amount ',num2str(sellHolds),'BenefitRatio = ',num2str(BenefitRatio),', expScale = ',num2str(expScale)]);
-                    
-                    traderLevelLeftHist = [traderLevelLeftHist;traderLevelLeft];
-                    sellHolds = 0;
-                    traderLevelLeft = traderLevelMax;
-                    tradingDurationHistory(tradingDurationHistoryPointer) = frameCount - tradingStart;
-                    tradingDurationHistoryointer = tradingDurationHistoryPointer +1 ;
-                    orderNumberPerMo = orderNumberPerMo+1;
-                    isRSIHit = false;
-                    plotPeriod = plotPeriodMain;
-                    numOfWin = numOfWin+1;
-                    isTradingBanned = true;
-                elseif(BenefitRatio<currentlossCutOff)%elseif(BenefitRatio<currentlossCutOff(traderLevelLeft+1))
-                    %beep
-                    %disp('-----------------------------------');
-                    if(traderLevelLeft>0)
-                        if isSim
-                            currentPrice = newPrice;
-                            currentSellPrice = (price.closeoutBid);
-                            simTrade = [simTrade;currentSellPrice];
-                            simUnits = [simUnits;sellHolds];
-                            tempProfit = 0;
-                            for ii = 1:length(simTrade)
-                                tempProfit = tempProfit + (currentPrice-simTrade(ii))*(double(simUnits(ii)));
-                            end
-                            balance = (account.balance);
-                            %account.marginAvailable = (account.marginAvailable-(currentSellPrice*double(-sellHolds))/leverage);
-                            account.NAV = balance+tempProfit;
-                        else
-                            OrderBook = NewOrder('EUR_USD',sellHolds);
-                            account = GetAccounts_oanda;
-                        end
+                if(~ ifTrailingStop)
+                    if(BenefitRatio>currentprofitCutOff)
+                        %beep
+                        %disp('-----------------------------------');
                         
                         
                         
-                        
-                        
-                        
-                        
-                        balance = (account.balance);
-                        BenefitRatio = (account.NAV)/balance;
-                        %disp(['increse sell order at ',num2str(newPrice),' with amount ',num2str(sellHolds),'BenefitRatio = ',num2str(BenefitRatio),', expScale = ',num2str(expScale)]);
-                        sellHolds = sellHolds*2;
-                        traderLevelLeft = traderLevelLeft-1;
-                        
-                    elseif ifLoss
-                        %time = clock;
-                        %                saveas(gcf,['C:\Users\Zhenyu\Desktop\fx_debug\dubug-' num2str(time(3)) '-' num2str(time(2)) '-' num2str(time(3)) '-' num2str(time(4)) '-' num2str(time(5)) '-' num2str(100*(time(6))) '.png'])
                         if isSim
                             currentPrice = newPrice;
                             currentSellPrice = (price.closeoutBid);
@@ -1046,19 +1020,137 @@ for yearIdx = 2018:2018
                             account.NAV = account.balance;
                             simTrade = [];
                             simUnits = [];
+                            disp(['[PDH win - ' num2str(traderLevelLeft) '], tempProfit  =' num2str(tempProfit)]);
+                            specialWatchPoint = frameCount;
                         else
                             OrderBook = NewOrder('EUR_USD',-sellHolds);
-                            %emailNotification('[PDH lose]')
+                            disp(['[PDH win - ' num2str(traderLevelLeft) ']']);
+                            %emailNotification('[PDH win]')
                         end
-                        disp('[PDH lose]');
-                        %disp(['[lose]close sell order at ',num2str(newPrice),' with amount ',num2str(sellHolds),'BenefitRatio = ',num2str(BenefitRatio),', expScale = ',num2str(expScale)]);
-                        beep
-                        numOfLoss = numOfLoss+1;
+                        
+                        
+                        
+                        
+                        
+                        %disp(['[win]close sell order at ',num2str(newPrice),' with amount ',num2str(sellHolds),'BenefitRatio = ',num2str(BenefitRatio),', expScale = ',num2str(expScale)]);
+                        
+                        traderLevelLeftHist = [traderLevelLeftHist;traderLevelLeft];
                         sellHolds = 0;
                         traderLevelLeft = traderLevelMax;
-                        %tradingDurationHistory(tradingDurationHistoryPointer) = frameCount - tradingStart;
-                        %tradingDurationHistoryPointer = tradingDurationHistoryPointer +1 ;
+                        tradingDurationHistory(tradingDurationHistoryPointer) = frameCount - tradingStart;
+                        tradingDurationHistoryointer = tradingDurationHistoryPointer +1 ;
+                        orderNumberPerMo = orderNumberPerMo+1;
+                        isRSIHit = false;
                         plotPeriod = plotPeriodMain;
+                        numOfWin = numOfWin+1;
+                        isTradingBanned = true;
+                    elseif(BenefitRatio<currentlossCutOff)%elseif(BenefitRatio<currentlossCutOff(traderLevelLeft+1))
+                        %beep
+                        %disp('-----------------------------------');
+                        if(traderLevelLeft>0)
+                            if isSim
+                                currentPrice = newPrice;
+                                currentSellPrice = (price.closeoutBid);
+                                simTrade = [simTrade;currentSellPrice];
+                                simUnits = [simUnits;sellHolds];
+                                tempProfit = 0;
+                                for ii = 1:length(simTrade)
+                                    tempProfit = tempProfit + (currentPrice-simTrade(ii))*(double(simUnits(ii)));
+                                end
+                                balance = (account.balance);
+                                %account.marginAvailable = (account.marginAvailable-(currentSellPrice*double(-sellHolds))/leverage);
+                                account.NAV = balance+tempProfit;
+                            else
+                                OrderBook = NewOrder('EUR_USD',sellHolds);
+                                account = GetAccounts_oanda;
+                            end
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                            balance = (account.balance);
+                            BenefitRatio = (account.NAV)/balance;
+                            %disp(['increse sell order at ',num2str(newPrice),' with amount ',num2str(sellHolds),'BenefitRatio = ',num2str(BenefitRatio),', expScale = ',num2str(expScale)]);
+                            sellHolds = sellHolds*2;
+                            traderLevelLeft = traderLevelLeft-1;
+                            
+                        elseif ifLoss
+                            %time = clock;
+                            %                saveas(gcf,['C:\Users\Zhenyu\Desktop\fx_debug\dubug-' num2str(time(3)) '-' num2str(time(2)) '-' num2str(time(3)) '-' num2str(time(4)) '-' num2str(time(5)) '-' num2str(100*(time(6))) '.png'])
+                            if isSim
+                                currentPrice = newPrice;
+                                currentSellPrice = (price.closeoutBid);
+                                tempProfit = 0;
+                                for ii = 1:length(simTrade)
+                                    tempProfit = tempProfit + (currentPrice-simTrade(ii))*(double(simUnits(ii)));
+                                end
+                                balance = (account.balance);
+                                account.balance = balance+tempProfit;
+                                account.marginAvailable = account.balance;
+                                account.NAV = account.balance;
+                                simTrade = [];
+                                simUnits = [];
+                            else
+                                OrderBook = NewOrder('EUR_USD',-sellHolds);
+                                %emailNotification('[PDH lose]')
+                            end
+                            disp('[PDH lose]');
+                            %disp(['[lose]close sell order at ',num2str(newPrice),' with amount ',num2str(sellHolds),'BenefitRatio = ',num2str(BenefitRatio),', expScale = ',num2str(expScale)]);
+                            beep
+                            numOfLoss = numOfLoss+1;
+                            sellHolds = 0;
+                            traderLevelLeft = traderLevelMax;
+                            %tradingDurationHistory(tradingDurationHistoryPointer) = frameCount - tradingStart;
+                            %tradingDurationHistoryPointer = tradingDurationHistoryPointer +1 ;
+                            plotPeriod = plotPeriodMain;
+                        end
+                    end
+                    
+                else
+                    
+                    if(BenefitRatio>1)
+                    
+                    if(currentprofitCutOffMax<BenefitRatio)
+                        currentprofitCutOffMax = BenefitRatio;
+                        disp(['new currentprofitCutOffMax = ' num2str(currentprofitCutOffMax)]);
+                    else
+                        %close order
+                        if isSim
+                            currentPrice = newPrice;
+                            currentSellPrice = (price.closeoutBid);
+                            tempProfit = 0;
+                            for ii = 1:length(simTrade)
+                                tempProfit = tempProfit + (currentPrice-simTrade(ii))*(double(simUnits(ii)));
+                            end
+                            balance = (account.balance);
+                            account.balance = balance+tempProfit;
+                            account.marginAvailable = account.balance;
+                            account.NAV = account.balance;
+                            simTrade = [];
+                            simUnits = [];
+                            disp(['[PDH win - ' num2str(traderLevelLeft) '], tempProfit  =' num2str(tempProfit)]);
+                            specialWatchPoint = frameCount;
+                        else
+                            OrderBook = NewOrder('EUR_USD',-sellHolds);
+                            disp(['[PDH win - ' num2str(traderLevelLeft) ']']);
+                            %emailNotification('[PDH win]')
+                        end
+                        
+                        traderLevelLeftHist = [traderLevelLeftHist;traderLevelLeft];
+                        sellHolds = 0;
+                        traderLevelLeft = traderLevelMax;
+                        tradingDurationHistory(tradingDurationHistoryPointer) = frameCount - tradingStart;
+                        tradingDurationHistoryointer = tradingDurationHistoryPointer +1 ;
+                        orderNumberPerMo = orderNumberPerMo+1;
+                        isRSIHit = false;
+                        plotPeriod = plotPeriodMain;
+                        numOfWin = numOfWin+1;
+                        isTradingBanned = true;
+                        currentprofitCutOffMax = 0;
+                    end
                     end
                 end
                 
