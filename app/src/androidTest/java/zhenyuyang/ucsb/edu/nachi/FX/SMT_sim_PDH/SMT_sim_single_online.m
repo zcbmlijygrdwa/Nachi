@@ -5,12 +5,12 @@ maxBalance = 0;
 
 traderLevelMax= 1;
 
-distrCut_arm = 1.0;
+distrCut_arm = 0.5;
 distrCut_valueCahne = distrCut_arm;
 p_ma_1 = 30;
 p_ma_2 = 720;
 maxPriod= p_ma_2*3;
-profitCutOff= 1.04; %1.04
+profitCutOff= 1.03; %1.04
 lossCutOff= 0.95; %0.6
 orderTimeoutThres = 3;
 filteredDataDiff_fallback_upper = 0.9;
