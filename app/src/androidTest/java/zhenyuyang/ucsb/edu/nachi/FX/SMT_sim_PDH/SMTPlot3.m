@@ -31,6 +31,10 @@ if(length(IP_idx)~=0&&length(IP)~=0)
 end
 hold off
 xlim([1,length(data)]);
+if(max(data)- min(data)<0.0010)
+ylim([mean(data)-0.0007,mean(data)+0.0007]);
+end
+
 
 subplot(6,2,5:6)
 
@@ -66,16 +70,14 @@ minD = min([min(filteredDataDiff2),ml2_arm]) - 0.0005;
 maxD = max([max(filteredDataDiff2),mr2_arm]) + 0.0005;
 
 subplot(6,2,[8,10])
-[m2,s2] = normfit(filteredDataDiff2);
-y2 = normpdf(filteredDataDiff2,m2,s2);
-h22 = histogram(filteredDataDiff2,[minD:0.00001:maxD]);
+plot(slopData)
 hold on;
-h12 = histogram([ones(int32(max(h22.BinCounts)),1)*ml2_arm;ones(int32(max(h22.BinCounts)),1)*mr2_arm],[minD:0.00002:maxD],'FaceColor','r','EdgeColor','r');
-y2 = (y2/max(y2))*max(h22.BinCounts);
-plot(filteredDataDiff2,y2,'.');
-h32 = histogram([ones(int32(max(h22.BinCounts)),1)*filteredDataDiff2(end)],[minD:0.00001:maxD],'FaceColor','b','EdgeColor','b');
+plot(slopThres*ones(length(slopData),1));
+plot(-slopThres*ones(length(slopData),1));
 hold off;
 title(['Diff2:' num2str(filteredDataDiff2(end)) '  [' num2str(ml2_arm) ', ' num2str(mr2_arm) ']']);
+xlim([1,length(data)]);
+ylim([-slopThres*1.4,slopThres*1.4]);
 
 subplot(6,2,11)
 
