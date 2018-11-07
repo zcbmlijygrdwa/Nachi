@@ -70,7 +70,7 @@ minD = min([min(filteredDataDiff2),ml2_arm]) - 0.0005;
 maxD = max([max(filteredDataDiff2),mr2_arm]) + 0.0005;
 
 subplot(6,2,[8,10])
-plot(slopData)
+plot(slopData(end-length(data):end))
 hold on;
 plot(slopThres*ones(length(slopData),1));
 plot(-slopThres*ones(length(slopData),1));
